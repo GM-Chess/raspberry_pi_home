@@ -1,7 +1,6 @@
 # Pi Zero Script (Python 3)
 import asyncio
 from bleak import BleakClient ,BleakScanner
-from machine import Pin, I2C
 import time
 import network 
 import socket
