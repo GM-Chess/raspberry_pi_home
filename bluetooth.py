@@ -2,8 +2,6 @@
 import asyncio
 from bleak import BleakClient ,BleakScanner
 import time
-import network 
-import socket
 import struct
 
 # Replace with your Pico's BLE MAC
