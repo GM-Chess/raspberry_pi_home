@@ -50,8 +50,12 @@ async def main():
                 print(f"Temperature: {temp_deg_c:.2f}°C")
                 await asyncio.sleep(1)
                 # send a command to the Pico
-                command = int("1")
-                await client.write_gatt_char(TEMP_CHAR_UUID, struct.pack("<h",command))
+           
+                await client.start_notify(TEMP_CHAR_UUID, lambda c, d: print(f"Notification from {c}: {d}"))
+                # Send command to Pico (example: turn on LED)
+                await client.write_gatt_char(TEMP_CHAR_UUID, b'0x1',response=False )
+                await asyncio.sleep(0.5)  # Sleeping just to make sure the response is not missed...
+                await client.stop_notify(TEMP_CHAR_UUID)
                 #print("Sent command to Pico:", command.decode())
                 # Wait for a while to see the response
                 await asyncio.sleep(1)
