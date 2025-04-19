@@ -3,7 +3,7 @@ import asyncio
 from bleak import BleakClient ,BleakScanner
 import time
 import struct
-from bluetooth import UUID
+import bluetooth
 
 # Replace with your Pico's BLE MAC
 PICO_ADDRESS = "2C:CF:67:C9:C3:66"  # Use colons, not underscores
