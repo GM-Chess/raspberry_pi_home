@@ -33,6 +33,8 @@ PICO_UUID = "0000180a-0000-1000-8000-00805f9b34fb"
 
 SERVICE_UUID = "0000181a-0000-1000-8000-00805f9b34fb"  # Service UUID on Pico
 TEMP_CHAR_UUID = "00002a6e-0000-1000-8000-00805f9b34fb"  # Temperature characteristic UUID
+_LED_UUID = "3b648378-b704-4fa2-8a32-ca24a021957f"
+
 
 def _decode_temperature(data):
     """Decode temperature from sint16 format (hundredths of a degree)."""
@@ -51,11 +53,11 @@ async def main():
                 await asyncio.sleep(1)
                 # send a command to the Pico
            
-                await client.start_notify(TEMP_CHAR_UUID, lambda c, d: print(f"Notification from {c}: {d}"))
+                await client.start_notify(_LED_UUID, lambda c, d: print(f"Notification from {c}: {d}"))
                 # Send command to Pico (example: turn on LED)
-                await client.write_gatt_char(TEMP_CHAR_UUID, b"\x01",response=False )
+                await client.write_gatt_char(_LED_UUID, b"\x01",response=False )
                 await asyncio.sleep(0.5)  # Sleeping just to make sure the response is not missed...
-                await client.stop_notify(TEMP_CHAR_UUID)
+                await client.stop_notify(_LED_UUID)
                 #print("Sent command to Pico:", command.decode())
                 # Wait for a while to see the response
                 await asyncio.sleep(1)
