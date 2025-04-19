@@ -29,7 +29,7 @@ PICO_UUID = "0000180a-0000-1000-8000-00805f9b34fb"
 
 # UUIDs for Environmental Sensing Service and Temperature Characteristic
 _ENV_SENSE_UUID = "0000181a-0000-1000-8000-00805f9b34fb"
-_ENV_SENSE_TEMP_UUID = "00002a6e-0000-1000-8000-00805f9b34fb"
+_ENV_SENSE_TEMP_UUID = PICO_UUID
 
 def _decode_temperature(data):
     """Decode temperature from sint16 format (hundredths of a degree)."""
