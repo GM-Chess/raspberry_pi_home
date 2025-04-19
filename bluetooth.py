@@ -3,7 +3,6 @@ import asyncio
 from bleak import BleakClient ,BleakScanner
 import time
 import struct
-import bluetooth
 
 # Replace with your Pico's BLE MAC
 PICO_ADDRESS = "2C:CF:67:C9:C3:66"  # Use colons, not underscores
@@ -32,8 +31,8 @@ PICO_UUID = "0000180a-0000-1000-8000-00805f9b34fb"
 
 # Replace these with your Pico's details
 
-SERVICE_UUID = UUID(0x180A)   # Service UUID on Pico
-TEMP_CHAR_UUID = UUID(0x2A29)  # Temperature characteristic UUID
+SERVICE_UUID = "0000181a-0000-1000-8000-00805f9b34fb"  # Service UUID on Pico
+TEMP_CHAR_UUID = "00002a6e-0000-1000-8000-00805f9b34fb"  # Temperature characteristic UUID
 
 def _decode_temperature(data):
     """Decode temperature from sint16 format (hundredths of a degree)."""
