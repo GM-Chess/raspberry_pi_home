@@ -52,7 +52,7 @@ async def main():
                 # send a command to the Pico
                 command = b"Hello from Pi Zero!"
                 await client.write_gatt_char(TEMP_CHAR_UUID, struct.pack("<h",command))
-                //print("Sent command to Pico:", command.decode())
+                #print("Sent command to Pico:", command.decode())
                 # Wait for a while to see the response
                 await asyncio.sleep(1)
 
