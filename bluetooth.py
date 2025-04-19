@@ -5,8 +5,8 @@ from bleak import BleakClient
 
 # PICO'S ADDRESS AND UUIDs (MUST MATCH PICO'S CODE)
 PICO_ADDRESS = "2C:CF:67:C9:C3:66"  # Your Pico's MAC address
-SERVICE_UUID = "0000181a-0000-1000-8000-00805f9b34fb"  # Environmental Sensing Service
-TEMP_CHAR_UUID = "00002a6e-0000-1000-8000-00805f9b34fb"  # Temperature Characteristic
+SERVICE_UUID = "932c32bd-0000-47a2-835a-a8d455b859dd"  # Environmental Sensing Service
+TEMP_CHAR_UUID = "932c32bd-0001-47a2-835a-a8d455b859dd"  # Temperature Characteristic
 LED_CONTROL_UUID = "932c32bd-0004-47a2-835a-a8d455b859dd"  # Custom LED UUID (MUST MATCH PICO)
 
 def _decode_temperature(data):
