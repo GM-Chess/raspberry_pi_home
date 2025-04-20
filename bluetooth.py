@@ -24,6 +24,18 @@ LED_CONTROL_UUID = "932c32bd-0004-47a2-835a-a8d455b859dd"  # Custom LED UUID (MU
 WATER_BIRDS_UUID = "932c32bd-0005-47a2-835a-a8d455b859dd"
 FEED_BIRDS_UUID = "932c32bd-0006-47a2-835a-a8d455b859dd"
 
+def get_ip():
+    """Get actual IP address of the Raspberry Pi"""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
+
 def _decode_temperature(data):
     """Decode temperature from sint16 format (hundredths of a degree)."""
     return struct.unpack("<h", data)[0] / 100
@@ -124,7 +136,21 @@ async def web_server():
     # Add new route for LED control
     app.router.add_get('/led/{state}', handle_led)
     
-    # ... rest of existing web_server setup ...
+    # Add routes
+    app.router.add_get('/', handle_root)
+    # app.router.add_get('/pump_in/{action}', handle_pump_in)
+    # app.router.add_get('/pump_out/{action}', handle_pump_out)
+    # app.router.add_get('/status', handle_status)
+    
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', 8080)
+    await site.start()
+    print(f"Server running on http://{get_ip()}:8080")  # Now using the defined function
+    
+    # Run forever
+    while True:
+        await asyncio.sleep(3600)
 
 # New LED handler
 async def handle_led(request):
@@ -139,7 +165,7 @@ async def handle_led(request):
         return web.Response(text=f"Error: {str(e)}", status=500)
 
 async def handle_root(request):
-    # Get REAL sensor values
+    
     temp, humidity = await sensor_data.get_values()
     
     html = HTML_TEMPLATE % (
@@ -173,6 +199,7 @@ async def BLE_task():
         except Exception as e:
             print(f"BLE error: {e}")
             await asyncio.sleep(5)
+
 # Update main to properly handle shutdown
 async def main():
     t1 = asyncio.create_task(BLE_task())
