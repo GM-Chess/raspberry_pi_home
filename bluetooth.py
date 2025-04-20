@@ -3,105 +3,105 @@ import asyncio
 import struct
 from bleak import BleakClient
 import time
-# import network
-# import socket
-# import time
+import network
+import socket
+import time
 
-# # WiFi credentials
-# ssid = 'hello world'
-# password = 'guinessWorldRecord'
+# WiFi credentials
+ssid = 'hello world'
+password = 'guinessWorldRecord'
 
-# # Connect to WiFi
-# wlan = network.WLAN(network.STA_IF)
-# wlan.active(True)
-# wlan.connect(ssid, password)
+# Connect to WiFi
+wlan = network.WLAN(network.STA_IF)
+wlan.active(True)
+wlan.connect(ssid, password)
 
-# max_wait = 10
-# while max_wait > 0:
-#     if wlan.status() < 0 or wlan.status() >= 3:
-#         break
-#     max_wait -= 1
-#     print('waiting for connection...')
-#     time.sleep(1)
+max_wait = 10
+while max_wait > 0:
+    if wlan.status() < 0 or wlan.status() >= 3:
+        break
+    max_wait -= 1
+    print('waiting for connection...')
+    time.sleep(1)
 
-# if wlan.status() != 3:
-#     raise RuntimeError('network connection failed')
-# else:
-#     print('connected')
-#     status = wlan.ifconfig()
-#     print('ip:', status[0])
+if wlan.status() != 3:
+    raise RuntimeError('network connection failed')
+else:
+    print('connected')
+    status = wlan.ifconfig()
+    print('ip:', status[0])
 
-# # Create socket
-# addr = socket.getaddrinfo('0.0.0.0', 80)[0][-1]
-# s = socket.socket()
-# s.bind(addr)
-# s.listen(1)
-# print('listening on', addr)
+# Create socket
+addr = socket.getaddrinfo('0.0.0.0', 80)[0][-1]
+s = socket.socket()
+s.bind(addr)
+s.listen(1)
+print('listening on', addr)
 
-# # HTML and CSS
-# html_template = """<!DOCTYPE html>
-# <html>
-# <head>
-#     <title>Home Control webpage</title>
-#     <meta http-equiv="refresh" content="5">
-#     <style>
-#         body { font-family: Arial, sans-serif; text-align: center; margin: 40px; }
-#         .sensor-data { font-size: 24px; margin: 20px; }
-#         button { 
-#             padding: 15px 30px; 
-#             font-size: 18px; 
-#             margin: 10px; 
-#             border: none; 
-#             border-radius: 5px; 
-#             cursor: pointer; 
-#         }
-#         .pump-in { background-color: #4CAF50; color: white; }
-#         .pump-out { background-color: #f44336; color: white; }
-#         .status { margin-top: 20px; }
-#     </style>
-#     <script>
-#         function controlPump(pump, action) {
-#             fetch(`/${pump}/${action}`)
-#                 .then(response => {
-#                     updateButtonStates();
-#                 });
-#         }
+# HTML and CSS
+html_template = """<!DOCTYPE html>
+<html>
+<head>
+    <title>Home Control webpage</title>
+    <meta http-equiv="refresh" content="5">
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 40px; }
+        .sensor-data { font-size: 24px; margin: 20px; }
+        button { 
+            padding: 15px 30px; 
+            font-size: 18px; 
+            margin: 10px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+        }
+        .pump-in { background-color: #4CAF50; color: white; }
+        .pump-out { background-color: #f44336; color: white; }
+        .status { margin-top: 20px; }
+    </style>
+    <script>
+        function controlPump(pump, action) {
+            fetch(`/${pump}/${action}`)
+                .then(response => {
+                    updateButtonStates();
+                });
+        }
 
-#         function updateButtonStates() {
-#             fetch('/status')
-#                 .then(response => response.json())
-#                 .then(data => {
-#                     document.getElementById('pump-in-state').textContent = data.pump_in ? 'ON' : 'OFF';
-#                     document.getElementById('pump-out-state').textContent = data.pump_out ? 'ON' : 'OFF';
-#                 });
-#         }
+        function updateButtonStates() {
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('pump-in-state').textContent = data.pump_in ? 'ON' : 'OFF';
+                    document.getElementById('pump-out-state').textContent = data.pump_out ? 'ON' : 'OFF';
+                });
+        }
 
-#         setInterval(updateButtonStates, 1000);
-#     </script>
-# </head>
-# <body>
-#     <h1>Home Control webpage</h1>
+        setInterval(updateButtonStates, 1000);
+    </script>
+</head>
+<body>
+    <h1>Home Control webpage</h1>
     
-#     <div class="sensor-data">
-#         <h2>Temperature: %.1f&#176;C</h2>
-#         <h2>Humidity: %.1f%%</h2>
-#     </div>
+    <div class="sensor-data">
+        <h2>Temperature: %.1f&#176;C</h2>
+        <h2>Humidity: %.1f%%</h2>
+    </div>
 
-#     <div class="controls">
-#         <button class="pump-in" onclick="controlPump('pump_in', 'on')">Pump In ON</button>
-#         <button class="pump-in" onclick="controlPump('pump_in', 'off')">Pump In OFF</button>
-#         <br>
-#         <button class="pump-out" onclick="controlPump('pump_out', 'on')">Pump Out ON</button>
-#         <button class="pump-out" onclick="controlPump('pump_out', 'off')">Pump Out OFF</button>
-#     </div>
+    <div class="controls">
+        <button class="pump-in" onclick="controlPump('pump_in', 'on')">Pump In ON</button>
+        <button class="pump-in" onclick="controlPump('pump_in', 'off')">Pump In OFF</button>
+        <br>
+        <button class="pump-out" onclick="controlPump('pump_out', 'on')">Pump Out ON</button>
+        <button class="pump-out" onclick="controlPump('pump_out', 'off')">Pump Out OFF</button>
+    </div>
 
-#     <div class="status">
-#         <p>Pump In Status: <span id="pump-in-state">%s</span></p>
-#         <p>Pump Out Status: <span id="pump-out-state">%s</span></p>
-#     </div>
-# </body>
-# </html>
-# """
+    <div class="status">
+        <p>Pump In Status: <span id="pump-in-state">%s</span></p>
+        <p>Pump Out Status: <span id="pump-out-state">%s</span></p>
+    </div>
+</body>
+</html>
+"""
 
 
 # PICO'S ADDRESS AND UUIDs (MUST MATCH PICO'S CODE)
@@ -132,8 +132,8 @@ def _decode_time(data):
     except Exception as e:
         print(f"Error decoding time: {e}")
         return None
-
-async def main():
+    
+async def BLE_task():
     try:
         async with BleakClient(PICO_ADDRESS) as client:
             print(f"Connected to Pico at {PICO_ADDRESS}")
@@ -166,6 +166,39 @@ async def main():
 
     except Exception as e:
         print(f"Error: {e}")
+
+async def web_server():
+    while True:
+        try:
+            cl, addr = s.accept()
+            print('client connected from', addr)
+            request = cl.recv(1024)
+            request = str(request)
+            print('request:', request)
+            async with BleakClient(PICO_ADDRESS) as client:
+                # Parse the request
+                if '/pump_in/on' in request:
+                    print("Pump In ON")
+                    await client.write_gatt_char(LED_CONTROL_UUID, b"\x01")  # Turn ON
+                elif '/pump_in/off' in request:
+                    print("Pump In OFF")
+                    await client.write_gatt_char(LED_CONTROL_UUID, b"\x00")  # Turn OFF
+                elif '/pump_out/on' in request:
+                    print("Pump Out ON")
+                    await client.write_gatt_char(LED_CONTROL_UUID, b"\x01")  # Turn ON
+                elif '/pump_out/off' in request:
+                    print("Pump Out OFF")
+                    await client.write_gatt_char(LED_CONTROL_UUID, b"\x00")
+        
+        except Exception as e:
+            print(f"Error handling request: {e}")
+            cl.close()
+            
+
+async def main():
+    t1 = asyncio.create_task(BLE_task())
+    t2 = asyncio.create_task(web_server())
+    await asyncio.gather(t1, t2)
 
 if __name__ == "__main__":
     asyncio.run(main())
