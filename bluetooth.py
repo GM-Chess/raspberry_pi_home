@@ -11,7 +11,7 @@ import time
 from aiohttp import web
 import json
 
-PORT = 8080
+PORT = 80
 pump_in = False
 pump_out = False
 
@@ -88,9 +88,9 @@ async def web_server():
     
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, '0.0.0.0', 8080)
+    site = web.TCPSite(runner, '0.0.0.0', 80)
     await site.start()
-    print("Web server started at http://0.0.0.0:8080")
+    print("Web server started at http://0.0.0.0:80")
     
     # Run forever
     while True:
