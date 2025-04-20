@@ -301,22 +301,22 @@ async def handle_root(request):
 async def BLE_task(ble_client):
     while True:
         try:
-            async with ble_client as client:
-                print(f"Connected to Pico at {PICO_ADDRESS}")
-                while True:
-                    # Read actual sensor data
-                    temp_data = await client.read_gatt_char(TEMP_CHAR_UUID)
-                    humidity_data = await client.read_gatt_char(HUMIDITY_CHAR_UUID)
-                    
-                    # Decode values
-                    temp = _decode_temperature(temp_data)
-                    humidity = _decode_temperature(humidity_data)
-                    print(f"Temperature: {temp:.2f}°C, Humidity: {humidity:.2f}%")
-                    
-                    # Update shared sensor data
-                    await sensor_data.update(temp, humidity)
-                    
-                    await asyncio.sleep(2)
+        
+            print(f"Connected to Pico at {PICO_ADDRESS}")
+            while True:
+                # Read actual sensor data
+                temp_data = await ble_client.read_gatt_char(TEMP_CHAR_UUID)
+                humidity_data = await ble_client.read_gatt_char(HUMIDITY_CHAR_UUID)
+                
+                # Decode values
+                temp = _decode_temperature(temp_data)
+                humidity = _decode_temperature(humidity_data)
+                print(f"Temperature: {temp:.2f}°C, Humidity: {humidity:.2f}%")
+                
+                # Update shared sensor data
+                await sensor_data.update(temp, humidity)
+                
+                await asyncio.sleep(2)
                     
         except Exception as e:
             print(f"BLE error: {e}")
