@@ -58,8 +58,8 @@ def _decode_time(data):
 
 class SensorData:
     def __init__(self):
-        self.temperature = 0.0
-        self.humidity = 0.0
+        self.temperature = 14.5
+        self.humidity = 12.4
         self._lock = asyncio.Lock()
         
     async def update(self, temp, humidity):
