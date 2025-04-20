@@ -206,20 +206,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </html>"""
 
 
-async def web_server():
+async def web_server(ble_client):
+    app = web.Application(middlewares=[error_middleware])
     app = web.Application()
+    
+    app['ble_client'] = ble_client  # Store BLE client in app context
     app['pump_in'] = False
     app['pump_out'] = False
-    app['led_state'] = False  # Add LED state
+    app['led_state'] = False
     
     # Add new route for LED control
-    app.router.add_get('/led/{state}', handle_led)
-    
-    # Add routes
     app.router.add_get('/', handle_root)
-    # app.router.add_get('/pump_in/{action}', handle_pump_in)
-    # app.router.add_get('/pump_out/{action}', handle_pump_out)
-    # app.router.add_get('/status', handle_status)
+    app.router.add_get('/pump_in/{action}', handle_pump_in)
+    app.router.add_get('/pump_out/{action}', handle_pump_out)
+    app.router.add_get('/led/{state}', handle_led)  # LED route
+    app.router.add_get('/status', handle_status)    # Status route
     
     runner = web.AppRunner(app)
     await runner.setup()
@@ -231,17 +232,57 @@ async def web_server():
     while True:
         await asyncio.sleep(3600)
 
-# New LED handler
-async def handle_led(request):
-    state = request.match_info['state']
-    new_state = (state == 'on')
-    
+@web.middleware
+async def error_middleware(request, handler):
     try:
-        await ble_controller.control_led(new_state)
-        request.app['led_state'] = new_state
-        return web.Response(text=f"LED set to {state.upper()}")
+        return await handler(request)
+    except web.HTTPException as ex:
+        return web.json_response({
+            "error": ex.reason,
+            "status": ex.status
+        }, status=ex.status)
+    except Exception as e:
+        return web.json_response({
+            "error": str(e),
+            "status": 500
+        }, status=500)
+
+async def handle_status(request):
+    return web.json_response({
+        'pump_in': request.app['pump_in'],
+        'pump_out': request.app['pump_out'],
+        'led_state': request.app['led_state']  # Add this line
+    })
+async def handle_led(request):
+    try:
+        action = request.match_info['state']
+        request.app['led_state'] = (action == 'on')
+        
+        # Get BLE client from app context
+        ble_client = request.app['ble_client']
+        
+        if ble_client and ble_client.is_connected:
+            led_value = b"\x01" if (action == 'on') else b"\x00"
+            await ble_client.write_gatt_char(LED_CONTROL_UUID, led_value)
+            return web.Response(text=f"LED set to {action.upper()}")
+        else:
+            return web.Response(text="BLE not connected", status=503)
+            
+    except KeyError:
+        return web.Response(text="Missing state parameter", status=400)
     except Exception as e:
         return web.Response(text=f"Error: {str(e)}", status=500)
+
+
+async def handle_pump_in(request):
+    action = request.match_info['action']
+    request.app['pump_in'] = (action == 'on')
+    return web.Response(text=f"Pump IN set to {action.upper()}")
+
+async def handle_pump_out(request):
+    action = request.match_info['action']
+    request.app['pump_out'] = (action == 'on')
+    return web.Response(text=f"Pump OUT set to {action.upper()}")
 
 async def handle_root(request):
     
@@ -282,13 +323,18 @@ async def BLE_task():
 
 # Update main to properly handle shutdown
 async def main():
-    t1 = asyncio.create_task(BLE_task())
-    t2 = asyncio.create_task(web_server())
+     # Initialize BLE client first
+    ble_client = BleakClient(PICO_ADDRESS)
+    await ble_client.connect()
     
-    try:
-        await asyncio.gather(t1, t2)
-    finally:
-        await ble_controller.disconnect()
+    # Pass BLE client to web server
+    t1 = asyncio.create_task(BLE_task(ble_client))
+    t2 = asyncio.create_task(web_server(ble_client))
+    
+    await asyncio.gather(t1, t2)
+    
+    # Cleanup
+    await ble_client.disconnect()
 
 if __name__ == "__main__":
     asyncio.run(main())
