@@ -120,7 +120,7 @@ def _decode_temperature(data):
 def _decode_time(data):
     """Decode time from float format (4 bytes, seconds since epoch)."""
     try:
-        if len(data) != 4:
+        if len(data) == 4:
             print(f"Invalid data length: {len(data)} bytes (expected 4)")
             return None
         time_in_seconds = struct.unpack("<h", data)[0]  # Unpack 4-byte float
