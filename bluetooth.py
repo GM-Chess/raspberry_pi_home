@@ -104,7 +104,42 @@ ble_controller = BLEController()
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html>
 <head>
-    <!-- ... keep existing head content ... -->
+    <title>Home Control webpage</title>
+    <meta http-equiv="refresh" content="5">
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 40px; }
+        .sensor-data { font-size: 24px; margin: 20px; }
+        button { 
+            padding: 15px 30px; 
+            font-size: 18px; 
+            margin: 10px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+        }
+        .pump-in { background-color: #4CAF50; color: white; }
+        .pump-out { background-color: #f44336; color: white; }
+        .status { margin-top: 20px; }
+    </style>
+    <script>
+        function controlPump(pump, action) {
+            fetch(`/${pump}/${action}`)
+                .then(response => {
+                    updateButtonStates();
+                });
+        }
+
+        function updateButtonStates() {
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('pump-in-state').textContent = data.pump_in ? 'ON' : 'OFF';
+                    document.getElementById('pump-out-state').textContent = data.pump_out ? 'ON' : 'OFF';
+                });
+        }
+
+        setInterval(updateButtonStates, 1000);
+    </script>
     <script>
     function controlLED(state) {
         fetch(`/led/${state}`)
