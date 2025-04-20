@@ -118,10 +118,13 @@ def _decode_temperature(data):
     return struct.unpack("<h", data)[0] / 100
 
 def _decode_time(data):
-    """Decode time from uint16 format (seconds since epoch)."""
+    """Decode time from float format (4 bytes, seconds since epoch)."""
     try:
-        time_in_seconds = struct.unpack("<f", data)[0] #this is time in seconds since epoch
-        converted_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(time_in_seconds - 14400) ) #convert to EDT time zone
+        if len(data) != 4:
+            print(f"Invalid data length: {len(data)} bytes (expected 4)")
+            return None
+        time_in_seconds = struct.unpack("<f", data)[0]  # Unpack 4-byte float
+        converted_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(time_in_seconds - 14400))  # EDT
         return converted_time
     except Exception as e:
         print(f"Error decoding time: {e}")
