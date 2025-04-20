@@ -90,8 +90,7 @@ async def web_server():
     await runner.setup()
     site = web.TCPSite(runner, '0.0.0.0', 8080)
     await site.start()
-    print("Web server started at http://0.0.0.0:8080")
-    
+    print(f"Server running on http://{get_ip()}:8080")
     # Run forever
     while True:
         await asyncio.sleep(3600)  # Keep the server running
