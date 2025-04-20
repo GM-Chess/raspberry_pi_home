@@ -2,6 +2,7 @@
 import asyncio
 import struct
 from bleak import BleakClient
+import time
 # import network
 # import socket
 # import time
@@ -107,11 +108,20 @@ from bleak import BleakClient
 PICO_ADDRESS = "2C:CF:67:C9:C3:66"  # Your Pico's MAC address
 SERVICE_UUID = "932c32bd-0000-47a2-835a-a8d455b859dd"  # Environmental Sensing Service
 TEMP_CHAR_UUID = "932c32bd-0001-47a2-835a-a8d455b859dd"  # Temperature Characteristic
+HUMIDITY_CHAR_UUID = "932c32bd-0002-47a2-835a-a8d455b859dd"
 LED_CONTROL_UUID = "932c32bd-0004-47a2-835a-a8d455b859dd"  # Custom LED UUID (MUST MATCH PICO)
+WATER_BIRDS_UUID = "932c32bd-0005-47a2-835a-a8d455b859dd"
+FEED_BIRDS_UUID = "932c32bd-0006-47a2-835a-a8d455b859dd"
 
 def _decode_temperature(data):
     """Decode temperature from sint16 format (hundredths of a degree)."""
     return struct.unpack("<h", data)[0] / 100
+
+def _decode_time(data):
+    """Decode time from uint16 format (seconds since epoch)."""
+    time_in_seconds = struct.unpack("<f", data)[0] #this is time in seconds since epoch
+    converted_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(time_in_seconds - 14400) ) #convert to EDT time zone
+    return converted_time
 
 async def main():
     try:
@@ -119,8 +129,18 @@ async def main():
             print(f"Connected to Pico at {PICO_ADDRESS}")
 
             while True:
+                # Read feed and water times
+                time_data_water = await client.read_gatt_char(WATER_BIRDS_UUID)
+                time_deg_c = _decode_time(time_data_water) 
+                print(f"Time of watering: {time_deg_c}")
+                time_data_feed = await client.read_gatt_char(FEED_BIRDS_UUID)
+                time_deg_c = _decode_time(time_data_feed)
+                print(f"Time of feeding: {time_deg_c}")
+                #read humidity data
+                humidity_data = await client.read_gatt_char(HUMIDITY_CHAR_UUID)
+                humidity_deg_c = _decode_temperature(humidity_data)
+                print(f"Humidity: {humidity_deg_c:.2f}%")
                 # Read temperature
-                 
                 temp_data = await client.read_gatt_char(TEMP_CHAR_UUID)
                 temp_deg_c = _decode_temperature(temp_data)
                 print(f"Temperature: {temp_deg_c:.2f}°C")
