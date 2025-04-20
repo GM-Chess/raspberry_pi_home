@@ -123,8 +123,8 @@ def _decode_time(data):
         if len(data) != 4:
             print(f"Invalid data length: {len(data)} bytes (expected 4)")
             return None
-        time_in_seconds = struct.unpack("<f", data)[0]  # Unpack 4-byte float
-        converted_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(time_in_seconds - 14400))  # EDT
+        time_in_seconds = struct.unpack("<h", data)[0]  # Unpack 4-byte float
+        converted_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime((time_in_seconds/10000000) - 14400))  # EDT
         return converted_time
     except Exception as e:
         print(f"Error decoding time: {e}")
