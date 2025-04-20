@@ -115,7 +115,27 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     </script>
 </head>
 <body>
-    <!-- ... existing body content ... -->
+
+    <h1>Home Control webpage</h1>
+    
+    <div class="sensor-data">
+        <h2>Temperature: %.1f&#176;C</h2>
+        <h2>Humidity: %.1f%%</h2>
+    </div>
+
+    <div class="controls">
+        <button class="pump-in" onclick="controlPump('pump_in', 'on')">Pump In ON</button>
+        <button class="pump-in" onclick="controlPump('pump_in', 'off')">Pump In OFF</button>
+        <br>
+        <button class="pump-out" onclick="controlPump('pump_out', 'on')">Pump Out ON</button>
+        <button class="pump-out" onclick="controlPump('pump_out', 'off')">Pump Out OFF</button>
+    </div>
+
+    <div class="status">
+        <p>Pump In Status: <span id="pump-in-state">%s</span></p>
+        <p>Pump Out Status: <span id="pump-out-state">%s</span></p>
+    </div>
+
     
     <div class="led-control">
         <h2>LED Control</h2>
