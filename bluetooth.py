@@ -251,7 +251,8 @@ async def handle_root(request):
         temp,
         humidity,
         "ON" if request.app['pump_in'] else "OFF",
-        "ON" if request.app['pump_out'] else "OFF"
+        "ON" if request.app['pump_out'] else "OFF",
+        "ON" if request.app['led_state'] else "OFF"
     )
     return web.Response(text=html, content_type='text/html')
 
