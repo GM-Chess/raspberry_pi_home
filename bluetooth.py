@@ -3,11 +3,9 @@ import asyncio
 import struct
 from bleak import BleakClient
 import time
-import time
+import socket
 import http.server
 import socketserver
-import json
-import time
 from aiohttp import web
 import json
 
@@ -75,6 +73,18 @@ async def BLE_task():
     except Exception as e:
         print(f"Error: {e}")
 
+def get_ip():
+    """Get actual IP address of the Raspberry Pi"""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
+
 async def web_server():
     app = web.Application()
     app['pump_in'] = False
@@ -90,11 +100,11 @@ async def web_server():
     await runner.setup()
     site = web.TCPSite(runner, '0.0.0.0', 8080)
     await site.start()
-    print("Web server started at http://0.0.0.0:8080")
+    print(f"Server running on http://{get_ip()}:8080")  # Now using the defined function
     
     # Run forever
     while True:
-        await asyncio.sleep(3600)  # Keep the server running
+        await asyncio.sleep(3600)
 
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html>
