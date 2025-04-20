@@ -107,8 +107,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <title>Home Control webpage</title>
     <meta http-equiv="refresh" content="5">
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin: 40px; }
-        .sensor-data { font-size: 24px; margin: 20px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            margin: 40px; 
+        }
+        .sensor-data { 
+            font-size: 24px; 
+            margin: 20px; 
+        }
         button { 
             padding: 15px 30px; 
             font-size: 18px; 
@@ -117,16 +124,40 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             border-radius: 5px; 
             cursor: pointer; 
         }
-        .pump-in { background-color: #4CAF50; color: white; }
-        .pump-out { background-color: #f44336; color: white; }
-        .status { margin-top: 20px; }
+        .pump-in { 
+            background-color: #4CAF50; 
+            color: white; 
+        }
+        .pump-out { 
+            background-color: #f44336; 
+            color: white; 
+        }
+        .led-on {
+            background-color: #2196F3;
+            color: white;
+        }
+        .led-off {
+            background-color: #607D8B;
+            color: white;
+        }
+        .status { 
+            margin-top: 20px; 
+        }
+        .led-control {
+            margin-top: 30px;
+            padding: 20px;
+            border-top: 1px solid #ddd;
+        }
     </style>
     <script>
         function controlPump(pump, action) {
             fetch(`/${pump}/${action}`)
-                .then(response => {
-                    updateButtonStates();
-                });
+                .then(updateButtonStates);
+        }
+
+        function controlLED(state) {
+            fetch(`/led/${state}`)
+                .then(updateButtonStates);
         }
 
         function updateButtonStates() {
@@ -135,22 +166,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 .then(data => {
                     document.getElementById('pump-in-state').textContent = data.pump_in ? 'ON' : 'OFF';
                     document.getElementById('pump-out-state').textContent = data.pump_out ? 'ON' : 'OFF';
+                    document.getElementById('led-state').textContent = data.led_state ? 'ON' : 'OFF';
                 });
         }
 
+        // Initial update and set interval
+        document.addEventListener('DOMContentLoaded', updateButtonStates);
         setInterval(updateButtonStates, 1000);
-    </script>
-    <script>
-    function controlLED(state) {
-        fetch(`/led/${state}`)
-            .then(response => {
-                updateButtonStates();
-            });
-    }
     </script>
 </head>
 <body>
-
     <h1>Home Control webpage</h1>
     
     <div class="sensor-data">
@@ -171,7 +196,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <p>Pump Out Status: <span id="pump-out-state">%s</span></p>
     </div>
 
-    
     <div class="led-control">
         <h2>LED Control</h2>
         <button class="led-on" onclick="controlLED('on')">LED ON</button>
@@ -179,8 +203,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <p>LED Status: <span id="led-state">%s</span></p>
     </div>
 </body>
-</html>
-"""
+</html>"""
+
 
 async def web_server():
     app = web.Application()
