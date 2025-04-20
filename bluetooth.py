@@ -111,7 +111,7 @@ LED_CONTROL_UUID = "932c32bd-0004-47a2-835a-a8d455b859dd"  # Custom LED UUID (MU
 
 def _decode_temperature(data):
     """Decode temperature from sint16 format (hundredths of a degree)."""
-    return struct.unpack("<h", data)
+    return struct.unpack("<f", data)
 
 async def main():
     try:
