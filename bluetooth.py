@@ -119,9 +119,13 @@ def _decode_temperature(data):
 
 def _decode_time(data):
     """Decode time from uint16 format (seconds since epoch)."""
-    time_in_seconds = struct.unpack("<f", data)[0] #this is time in seconds since epoch
-    converted_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(time_in_seconds - 14400) ) #convert to EDT time zone
-    return converted_time
+    try:
+        time_in_seconds = struct.unpack("<f", data)[0] #this is time in seconds since epoch
+        converted_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(time_in_seconds - 14400) ) #convert to EDT time zone
+        return converted_time
+    except Exception as e:
+        print(f"Error decoding time: {e}")
+        return None
 
 async def main():
     try:
