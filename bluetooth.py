@@ -111,7 +111,7 @@ LED_CONTROL_UUID = "932c32bd-0004-47a2-835a-a8d455b859dd"  # Custom LED UUID (MU
 
 def _decode_temperature(data):
     """Decode temperature from sint16 format (hundredths of a degree)."""
-    return struct.unpack("<h", data)[4] / 100
+    return struct.unpack("<h", data) / 100
 
 async def main():
     try:
@@ -120,6 +120,7 @@ async def main():
 
             while True:
                 # Read temperature
+                 
                 temp_data = await client.read_gatt_char(TEMP_CHAR_UUID)
                 temp_deg_c = _decode_temperature(temp_data)
                 print(f"Temperature: {temp_deg_c:.2f}°C")
