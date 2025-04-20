@@ -298,10 +298,10 @@ async def handle_root(request):
     return web.Response(text=html, content_type='text/html')
 
 # Update BLE_task to maintain connection
-async def BLE_task():
+async def BLE_task(ble_client):
     while True:
         try:
-            async with BleakClient(PICO_ADDRESS) as client:
+            async with ble_client as client:
                 print(f"Connected to Pico at {PICO_ADDRESS}")
                 while True:
                     # Read actual sensor data
