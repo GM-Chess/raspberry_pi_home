@@ -68,12 +68,7 @@ async def BLE_task():
                 temp_deg_c = _decode_temperature(temp_data)
                 print(f"Temperature: {temp_deg_c:.2f}°C")
 
-                # Control LED (example: toggle)
-                await client.write_gatt_char(LED_CONTROL_UUID, b"\x01")  # Turn ON
-                print("LED turned ON")
-                await asyncio.sleep(1)
-                await client.write_gatt_char(LED_CONTROL_UUID, b"\x00")  # Turn OFF
-                print("LED turned OFF")
+              
                 
                 await asyncio.sleep(2)
 
