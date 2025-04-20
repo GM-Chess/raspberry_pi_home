@@ -311,6 +311,7 @@ async def BLE_task(ble_client):
                     # Decode values
                     temp = _decode_temperature(temp_data)
                     humidity = _decode_temperature(humidity_data)
+                    print(f"Temperature: {temp:.2f}°C, Humidity: {humidity:.2f}%")
                     
                     # Update shared sensor data
                     await sensor_data.update(temp, humidity)
