@@ -120,7 +120,7 @@ def _decode_temperature(data):
 def _decode_time(data):
     """Decode time from float format (4 bytes, seconds since epoch)."""
     try:
-        time_in_seconds = struct.unpack("<I", data)[0]  # Unpack 4-byte float
+        time_in_seconds = struct.unpack("<I", data) # Unpack 4-byte float
         converted_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime((time_in_seconds/10000000) - 14400))  # EDT
         return converted_time
     except Exception as e:
