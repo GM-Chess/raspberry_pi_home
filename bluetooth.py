@@ -453,11 +453,11 @@ async def BLE_task(ble_client):
 # Update main to properly handle shutdown
 async def main():
      # Initialize BLE client first
-    try: 
-        ble_client = BleakClient(PICO_ADDRESS)
-        await ble_client.connect()
-    except Exception as e:
-        print(f"Failed to connect to BLE device: {e}")
+
+    ble_client = BleakClient(PICO_ADDRESS)
+    await ble_client.connect()
+
+    print(f"Failed to connect to BLE device: {e}")
         
     # Pass BLE client to web server
     t1 = asyncio.create_task(BLE_task(ble_client))
