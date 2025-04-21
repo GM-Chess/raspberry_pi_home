@@ -104,26 +104,48 @@ class BLEController:
 # Shared BLE controller instance
 ble_controller = BLEController()
 
-# Update HTML template to add LED control
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html>
 <head>
     <title>Home Control webpage</title>
     <meta http-equiv="refresh" content="5">
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            text-align: center; 
-            margin: 40px; 
+        
+        .container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
         }
+
+        .image-panel {
+            width: 30%;
+            padding: 20px;
+            position: sticky;
+            top: 20px;
+        }
+
+        .bird-image {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .content-panel {
+            flex: 1;
+            max-width: 70%;
+        }
+
         .sensor-data { 
             font-size: 24px; 
             margin: 20px; 
         }
+
         .timestamps {
             font-size: 18px; 
             margin: 20px; 
         }
+
         button { 
             padding: 15px 30px; 
             font-size: 18px; 
@@ -132,10 +154,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             border-radius: 5px; 
             cursor: pointer; 
         }
+
         .pump-in { 
             background-color: #4CAF50; 
             color: white; 
         }
+
         .pump-out { 
             background-color: #f44336; 
             color: white; 
@@ -144,13 +168,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             background-color: #2196F3;
             color: white;
         }
+
         .led-off {
             background-color: #607D8B;
             color: white;
         }
+
         .status { 
             margin-top: 20px; 
         }
+
         .led-control {
             margin-top: 30px;
             padding: 20px;
@@ -160,6 +187,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .feed-button {
             background-color: #FF9800;
             color: white;
+        }
+
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 40px; 
+            background-color: #f5f5f5;
         }
     </style>
     <script>
@@ -200,7 +233,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     </script>
 </head>
 <body>
-    <h1>Home Control webpage</h1>
+    <div class="container">
+        <div class="image-panel">
+            <img src="bird1.jpg" alt="Bird System Overview" class="bird-image">
+        </div>
+        
+        <div class="content-panel">
+            <h1>Home Control webpage</h1>
     
     <div class="sensor-data">
         <h2>Temperature: %.1f&#176;C</h2>
