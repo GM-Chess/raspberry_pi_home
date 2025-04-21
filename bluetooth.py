@@ -2,6 +2,7 @@
 #add comment for change to git
 import asyncio
 import struct
+import os
 from bleak import BleakClient
 import time
 import socket
@@ -9,6 +10,7 @@ import http.server
 import socketserver
 from aiohttp import web
 import json
+import traceback
 
 PORT = 8080
 pump_in = False
@@ -63,6 +65,8 @@ class SensorData:
     def __init__(self):
         self.temperature = 14.5
         self.humidity = 12.4
+        self.last_fed = "Never"
+        self.last_watered = "Never"
         self._lock = asyncio.Lock()
         
     async def update(self, temp, humidity, fed_time, water_time):
@@ -74,7 +78,12 @@ class SensorData:
             
     async def get_values(self):
         async with self._lock:
-            return (self.temperature, self.humidity, self.fed_time, self.water_time)
+            return (
+                self.temperature, 
+                self.humidity,
+                self.fed_time, 
+                self.water_time
+                )
 
 sensor_data = SensorData()
 
@@ -111,7 +120,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <title>Home Control webpage</title>
     <meta http-equiv="refresh" content="5">
     <style>
-        
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 40px; 
+            background-color: #f5f5f5;
+        }
         .container {
             display: flex;
             gap: 20px;
@@ -190,11 +203,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             color: white;
         }
 
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 40px; 
-            background-color: #f5f5f5;
-        }
+        
     </style>
     <script>
         function feedBirds() {
@@ -236,7 +245,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <body>
     <div class="container">
         <div class="image-panel">
-            <img src="bird1.jpg" alt="Bird System Overview" class="bird-image">
+            <img src="/static/bird1.jpg" alt="Bird System Overview" class="bird-image">
         </div>
         
         <div class="content-panel">
@@ -287,12 +296,14 @@ async def web_server(ble_client):
     app['last_watered'] = "Never"
     
     # Add new route for LED control
+    app.router.add_static('/static/', path=os.path.dirname(__file__))
     app.router.add_get('/', handle_root)
     app.router.add_get('/pump_in/{action}', handle_pump_in)
     app.router.add_get('/pump_out/{action}', handle_pump_out)
     app.router.add_get('/led/{state}', handle_led)  
     app.router.add_get('/status', handle_status)   
     app.router.add_get('/feed', handle_feed)
+
     
     runner = web.AppRunner(app)
     await runner.setup()
@@ -306,19 +317,14 @@ async def web_server(ble_client):
 
 @web.middleware
 async def error_middleware(request, handler):
-    """Middleware to handle errors and return JSON responses."""
     try:
         return await handler(request)
-    except web.HTTPException as ex:
-        return web.json_response({
-            "error": ex.reason,
-            "status": ex.status
-        }, status=ex.status)
     except Exception as e:
-        return web.json_response({
-            "error": str(e),
-            "status": 500
-        }, status=500)
+        print(f"\n⚠️ ERROR: {str(e)}")
+        print(f"Request Path: {request.path}")
+        print(f"Template Variables Count: {HTML_TEMPLATE.count('%')}")
+        traceback.print_exc()
+        return web.Response(text="Server Error", status=500)
 
 async def handle_status(request):
     """ set up JSON for the status """
@@ -396,18 +402,23 @@ async def handle_pump_out(request):
         return web.Response(text=f"Error: {str(e)}", status=500)
 
 async def handle_root(request):
-    
     temp, humidity, fed_time, water_time = await sensor_data.get_values()
+
+
     
     html = HTML_TEMPLATE % (
-        temp,
-        humidity,
-        fed_time,
-        water_time,
-        "ON" if request.app['pump_in'] else "OFF",
-        "ON" if request.app['pump_out'] else "OFF",
-        "ON" if request.app['led_state'] else "OFF"
+        temp,                      # %.1f°C
+        humidity,                  # %.1f%%
+        fed_time or "Never",       # %s (Last Fed)
+        water_time or "Never",     # %s (Last Watered)
+        "ON" if request.app['pump_in'] else "OFF",  # %s (Pump In)
+        "ON" if request.app['pump_out'] else "OFF", # %s (Pump Out)
+        "ON" if request.app['led_state'] else "OFF" # %s (LED)
     )
+
+    print(f"Template values: {temp}, {humidity}, {fed_time}, {water_time}, "
+      f"{request.app['pump_in']}, {request.app['pump_out']}, "
+      f"{request.app['led_state']}")
     return web.Response(text=html, content_type='text/html')
 
 def _decode_time(data):
