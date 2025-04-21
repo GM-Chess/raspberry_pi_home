@@ -75,7 +75,12 @@ class SensorData:
             
     async def get_values(self):
         async with self._lock:
-            return (self.temperature, self.humidity, self.fed_time, self.water_time)
+            return (
+                self.temperature, 
+                self.humidity,
+                self.fed_time, 
+                self.water_time
+                )
 
 sensor_data = SensorData()
 
@@ -398,18 +403,23 @@ async def handle_pump_out(request):
         return web.Response(text=f"Error: {str(e)}", status=500)
 
 async def handle_root(request):
-    
     temp, humidity, fed_time, water_time = await sensor_data.get_values()
+
+
     
     html = HTML_TEMPLATE % (
-        temp,
-        humidity,
-        fed_time or "Never",
-        water_time or "Never",
-        "ON" if request.app['pump_in'] else "OFF",
-        "ON" if request.app['pump_out'] else "OFF",
-        "ON" if request.app['led_state'] else "OFF"
+        temp,                      # %.1f°C
+        humidity,                  # %.1f%%
+        fed_time or "Never",       # %s (Last Fed)
+        water_time or "Never",     # %s (Last Watered)
+        "ON" if request.app['pump_in'] else "OFF",  # %s (Pump In)
+        "ON" if request.app['pump_out'] else "OFF", # %s (Pump Out)
+        "ON" if request.app['led_state'] else "OFF" # %s (LED)
     )
+
+    print(f"Template values: {temp}, {humidity}, {fed_time}, {water_time}, "
+      f"{request.app['pump_in']}, {request.app['pump_out']}, "
+      f"{request.app['led_state']}")
     return web.Response(text=html, content_type='text/html')
 
 def _decode_time(data):
