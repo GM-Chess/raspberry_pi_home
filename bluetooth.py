@@ -9,6 +9,7 @@ import http.server
 import socketserver
 from aiohttp import web
 import json
+import traceback
 
 PORT = 8080
 pump_in = False
@@ -294,13 +295,14 @@ async def web_server(ble_client):
     app['last_watered'] = "Never"
     
     # Add new route for LED control
+    app.router.add_static('/static/', path=os.path.dirname(__file__))
     app.router.add_get('/', handle_root)
     app.router.add_get('/pump_in/{action}', handle_pump_in)
     app.router.add_get('/pump_out/{action}', handle_pump_out)
     app.router.add_get('/led/{state}', handle_led)  
     app.router.add_get('/status', handle_status)   
     app.router.add_get('/feed', handle_feed)
-    app.router.add_static('/static/', path=os.path.dirname(os.path.abspath(__file__)), show_index=True)
+
     
     runner = web.AppRunner(app)
     await runner.setup()
@@ -314,19 +316,14 @@ async def web_server(ble_client):
 
 @web.middleware
 async def error_middleware(request, handler):
-    """Middleware to handle errors and return JSON responses."""
     try:
         return await handler(request)
-    except web.HTTPException as ex:
-        return web.json_response({
-            "error": ex.reason,
-            "status": ex.status
-        }, status=ex.status)
     except Exception as e:
-        return web.json_response({
-            "error": str(e),
-            "status": 500
-        }, status=500)
+        print(f"\n⚠️ ERROR: {str(e)}")
+        print(f"Request Path: {request.path}")
+        print(f"Template Variables Count: {HTML_TEMPLATE.count('%')}")
+        traceback.print_exc()
+        return web.Response(text="Server Error", status=500)
 
 async def handle_status(request):
     """ set up JSON for the status """
