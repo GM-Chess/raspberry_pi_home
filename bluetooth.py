@@ -116,6 +116,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             text-align: center; 
             margin: 40px; 
         }
+        img {
+            width: 200px;
+            height: 200px;
+            margin: 20px;
+        }
         .sensor-data { 
             font-size: 24px; 
             margin: 20px; 
@@ -201,7 +206,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </head>
 <body>
     <h1>Home Control webpage</h1>
-    
+    <img src="bird1.jpg" alt="Bird" style="width:128px;height:128px;">
     <div class="sensor-data">
         <h2>Temperature: %.1f&#176;C</h2>
         <h2>Humidity: %.1f%%</h2>
