@@ -24,6 +24,7 @@ PUMP_CONTROL_UUID = "932c32bd-0003-47a2-835a-a8d455b859dd"
 LED_CONTROL_UUID = "932c32bd-0004-47a2-835a-a8d455b859dd"  # Custom LED UUID (MUST MATCH PICO)
 WATER_BIRDS_UUID = "932c32bd-0005-47a2-835a-a8d455b859dd"
 FEED_BIRDS_UUID = "932c32bd-0006-47a2-835a-a8d455b859dd"
+MANUAL_FEED_BIRDS_UUID = "932c32bd-0007-47a2-835a-a8d455b859dd"
 
 def get_ip():
     """Get actual IP address of the Raspberry Pi"""
@@ -155,8 +156,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             padding: 20px;
             border-top: 1px solid #ddd;
         }
+        
+        .feed-button {
+            background-color: #FF9800;
+            color: white;
+        }
     </style>
     <script>
+        function feedBirds() {
+            fetch('/feed')
+                .then(response => {
+                    if (!response.ok) throw new Error('Feeding failed');
+                    updateTimestamps();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
         function controlPump(pump, action) {
             fetch(`/${pump}/${action}`)
                 .then(updateButtonStates);
@@ -167,13 +182,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 .then(updateButtonStates);
         }
 
-        function updateButtonStates() {
+         function updateButtonStates() {
             fetch('/status')
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('pump-in-state').textContent = data.pump_in ? 'ON' : 'OFF';
                     document.getElementById('pump-out-state').textContent = data.pump_out ? 'ON' : 'OFF';
                     document.getElementById('led-state').textContent = data.led_state ? 'ON' : 'OFF';
+                    document.getElementById('last-fed').textContent = data.last_fed;
+                    document.getElementById('last-watered').textContent = data.last_watered;
                 });
         }
 
@@ -194,6 +211,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <h2>Last Watered: %s</h2>
     </div>
     <div class="controls">
+        <button class="feed-button" onclick="feedBirds()">FEED BIRDS NOW</button>
         <button class="pump-in" onclick="controlPump('pump_in', 'on')">Pump In ON</button>
         <button class="pump-in" onclick="controlPump('pump_in', 'off')">Pump In OFF</button>
         <br>
@@ -217,6 +235,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 
 async def web_server(ble_client):
+    """Start the web server and handle requests."""
     app = web.Application(middlewares=[error_middleware])
     app = web.Application()
     
@@ -224,13 +243,16 @@ async def web_server(ble_client):
     app['pump_in'] = False
     app['pump_out'] = False
     app['led_state'] = False
+    app['last_fed'] = "Never"
+    app['last_watered'] = "Never"
     
     # Add new route for LED control
     app.router.add_get('/', handle_root)
     app.router.add_get('/pump_in/{action}', handle_pump_in)
     app.router.add_get('/pump_out/{action}', handle_pump_out)
-    app.router.add_get('/led/{state}', handle_led)  # LED route
-    app.router.add_get('/status', handle_status)    # Status route
+    app.router.add_get('/led/{state}', handle_led)  
+    app.router.add_get('/status', handle_status)   
+    app.router.add_get('/feed', handle_feed)
     
     runner = web.AppRunner(app)
     await runner.setup()
@@ -244,6 +266,7 @@ async def web_server(ble_client):
 
 @web.middleware
 async def error_middleware(request, handler):
+    """Middleware to handle errors and return JSON responses."""
     try:
         return await handler(request)
     except web.HTTPException as ex:
@@ -258,12 +281,16 @@ async def error_middleware(request, handler):
         }, status=500)
 
 async def handle_status(request):
+    """ set up JSON for the status """
     return web.json_response({
         'pump_in': request.app['pump_in'],
         'pump_out': request.app['pump_out'],
-        'led_state': request.app['led_state']  # Add this line
+        'led_state': request.app['led_state'],  
+        'last_fed': request.app['last_fed'],
+        'last_watered': request.app['last_watered']
     })
 async def handle_led(request):
+    """Handle LED control of the app to the Pico via BLE"""
     try:
         action = request.match_info['state']
         request.app['led_state'] = (action == 'on')
@@ -283,6 +310,18 @@ async def handle_led(request):
     except Exception as e:
         return web.Response(text=f"Error: {str(e)}", status=500)
 
+async def handle_feed(request):
+    try:
+        ble_client = request.app['ble_client']
+        if ble_client and ble_client.is_connected:
+            # Write feed command
+            await ble_client.write_gatt_char(MANUAL_FEED_BIRDS_UUID, b"\x01")
+            # Update timestamp
+            request.app['last_fed'] = _decode_time(await ble_client.read_gatt_char(FEED_BIRDS_UUID))
+            return web.Response(text="Birds fed successfully")
+        return web.Response(text="BLE not connected", status=503)
+    except Exception as e:
+        return web.Response(text=f"Error: {str(e)}", status=500)
 
 async def handle_pump_in(request):
     """Handle pump in control"""
@@ -293,6 +332,7 @@ async def handle_pump_in(request):
         if ble_client and ble_client.is_connected:
             pump_value = b"\x01" if (action == 'on') else b"\x00"
             await ble_client.write_gatt_char(PUMP_CONTROL_UUID, pump_value)
+            request.app['last_watered'] = _decode_time(await ble_client.read_gatt_char(WATER_BIRDS_UUID))
         return web.Response(text=f"Pump IN set to {action.upper()}")
     except KeyError:
         return web.Response(text="Missing action parameter", status=400)
