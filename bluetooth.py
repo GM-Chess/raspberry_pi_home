@@ -1,6 +1,7 @@
 # Pi Zero Script (Python 3)
 import asyncio
 import struct
+import os
 from bleak import BleakClient
 import time
 import socket
@@ -299,7 +300,7 @@ async def web_server(ble_client):
     app.router.add_get('/led/{state}', handle_led)  
     app.router.add_get('/status', handle_status)   
     app.router.add_get('/feed', handle_feed)
-    app.router.add_static('/static/', path='./', show_index=True)
+    app.router.add_static('/static/', path=os.path.dirname(os.path.abspath(__file__)), show_index=True)
     
     runner = web.AppRunner(app)
     await runner.setup()
