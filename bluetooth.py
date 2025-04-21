@@ -104,48 +104,26 @@ class BLEController:
 # Shared BLE controller instance
 ble_controller = BLEController()
 
+# Update HTML template to add LED control
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html>
 <head>
     <title>Home Control webpage</title>
     <meta http-equiv="refresh" content="5">
     <style>
-        
-        .container {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            margin: 40px; 
         }
-
-        .image-panel {
-            width: 30%;
-            padding: 20px;
-            position: sticky;
-            top: 20px;
-        }
-
-        .bird-image {
-            width: 100%;
-            height: auto;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        .content-panel {
-            flex: 1;
-            max-width: 70%;
-        }
-
         .sensor-data { 
             font-size: 24px; 
             margin: 20px; 
         }
-
         .timestamps {
             font-size: 18px; 
             margin: 20px; 
         }
-
         button { 
             padding: 15px 30px; 
             font-size: 18px; 
@@ -154,12 +132,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             border-radius: 5px; 
             cursor: pointer; 
         }
-
         .pump-in { 
             background-color: #4CAF50; 
             color: white; 
         }
-
         .pump-out { 
             background-color: #f44336; 
             color: white; 
@@ -168,16 +144,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             background-color: #2196F3;
             color: white;
         }
-
         .led-off {
             background-color: #607D8B;
             color: white;
         }
-
         .status { 
             margin-top: 20px; 
         }
-
         .led-control {
             margin-top: 30px;
             padding: 20px;
@@ -187,12 +160,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .feed-button {
             background-color: #FF9800;
             color: white;
-        }
-
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 40px; 
-            background-color: #f5f5f5;
         }
     </style>
     <script>
@@ -233,13 +200,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     </script>
 </head>
 <body>
-    <div class="container">
-        <div class="image-panel">
-            <img src="bird1.jpg" alt="Bird System Overview" class="bird-image">
-        </div>
-        
-        <div class="content-panel">
-            <h1>Home Control webpage</h1>
+    <h1>Home Control webpage</h1>
     
     <div class="sensor-data">
         <h2>Temperature: %.1f&#176;C</h2>
@@ -453,12 +414,9 @@ async def BLE_task(ble_client):
 # Update main to properly handle shutdown
 async def main():
      # Initialize BLE client first
-
     ble_client = BleakClient(PICO_ADDRESS)
     await ble_client.connect()
-
-    print(f"Failed to connect to BLE device: {e}")
-        
+    
     # Pass BLE client to web server
     t1 = asyncio.create_task(BLE_task(ble_client))
     t2 = asyncio.create_task(web_server(ble_client))
@@ -470,190 +428,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-# class home_state:
-#     def __init__(self):
-#         self.pump_in = False
-#         self.pump_out = False
-#     def set_pump_in(self, state):
-#         self.pump_in = state
-# def _decode_temperature(data):
-#     """Decode temperature from sint16 format (hundredths of a degree)."""
-#     return struct.unpack("<h", data)[0] / 100
-
-# def _decode_time(data):
-#     """Decode time from 8-byte format (seconds since epoch * 10^7)."""
-#     try:
-#         if len(data) != 8:  # Ensure 8 bytes are received
-#             print(f"Invalid data length: {len(data)} bytes (expected 8)")
-#             return None
-#         time_in_ticks = struct.unpack("<q", data)[0]  # Unpack 8-byte integer
-#         time_in_seconds = time_in_ticks / 10_000_000  # Convert back to seconds
-#         converted_time = time.strftime(
-#             "%a, %d %b %Y %H:%M:%S", time.gmtime(time_in_seconds - 14400)
-#         )
-#         return converted_time
-#     except Exception as e:
-#         print(f"Error decoding time: {e}")
-#         return None
-    
-# async def BLE_task():
-#     try:
-#         async with BleakClient(PICO_ADDRESS) as client:
-#             print(f"Connected to Pico at {PICO_ADDRESS}")
-
-#             while True:
-#                 # Read feed and water times
-#                 time_data_water = await client.read_gatt_char(WATER_BIRDS_UUID)
-#                 time_deg_c = _decode_time(time_data_water) 
-#                 print(f"Time of watering: {time_deg_c}")
-#                 time_data_feed = await client.read_gatt_char(FEED_BIRDS_UUID)
-#                 time_deg_c = _decode_time(time_data_feed)
-#                 print(f"Time of feeding: {time_deg_c}")
-#                 #read humidity data
-#                 humidity_data = await client.read_gatt_char(HUMIDITY_CHAR_UUID)
-#                 humidity_deg_c = _decode_temperature(humidity_data)
-#                 print(f"Humidity: {humidity_deg_c:.2f}%")
-#                 # Read temperature
-#                 temp_data = await client.read_gatt_char(TEMP_CHAR_UUID)
-#                 temp_deg_c = _decode_temperature(temp_data)
-#                 print(f"Temperature: {temp_deg_c:.2f}°C")
-
-              
-                
-#                 await asyncio.sleep(2)
-
-#     except Exception as e:
-#         print(f"Error: {e}")
-
-# def get_ip():
-#     """Get actual IP address of the Raspberry Pi"""
-#     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-#     try:
-#         s.connect(('10.255.255.255', 1))
-#         IP = s.getsockname()[0]
-#     except Exception:
-#         IP = '127.0.0.1'
-#     finally:
-#         s.close()
-#     return IP
-
-# async def web_server():
-#     app = web.Application()
-#     app['pump_in'] = False
-#     app['pump_out'] = False
-    
-#     # Add routes
-#     app.router.add_get('/', handle_root)
-#     app.router.add_get('/pump_in/{action}', handle_pump_in)
-#     app.router.add_get('/pump_out/{action}', handle_pump_out)
-#     app.router.add_get('/status', handle_status)
-    
-#     runner = web.AppRunner(app)
-#     await runner.setup()
-#     site = web.TCPSite(runner, '0.0.0.0', 8080)
-#     await site.start()
-#     print(f"Server running on http://{get_ip()}:8080")  # Now using the defined function
-    
-#     # Run forever
-#     while True:
-#         await asyncio.sleep(3600)
-
-# HTML_TEMPLATE = """<!DOCTYPE html>
-# <html>
-# <head>
-#     <title>Home Control webpage</title>
-#     <meta http-equiv="refresh" content="5">
-#     <style>
-#         body { font-family: Arial, sans-serif; text-align: center; margin: 40px; }
-#         .sensor-data { font-size: 24px; margin: 20px; }
-#         button { 
-#             padding: 15px 30px; 
-#             font-size: 18px; 
-#             margin: 10px; 
-#             border: none; 
-#             border-radius: 5px; 
-#             cursor: pointer; 
-#         }
-#         .pump-in { background-color: #4CAF50; color: white; }
-#         .pump-out { background-color: #f44336; color: white; }
-#         .status { margin-top: 20px; }
-#     </style>
-#     <script>
-#         function controlPump(pump, action) {
-#             fetch(`/${pump}/${action}`)
-#                 .then(response => {
-#                     updateButtonStates();
-#                 });
-#         }
-
-#         function updateButtonStates() {
-#             fetch('/status')
-#                 .then(response => response.json())
-#                 .then(data => {
-#                     document.getElementById('pump-in-state').textContent = data.pump_in ? 'ON' : 'OFF';
-#                     document.getElementById('pump-out-state').textContent = data.pump_out ? 'ON' : 'OFF';
-#                 });
-#         }
-
-#         setInterval(updateButtonStates, 1000);
-#     </script>
-# </head>
-# <body>
-#     <h1>Home Control webpage</h1>
-    
-#     <div class="sensor-data">
-#         <h2>Temperature: %.1f&#176;C</h2>
-#         <h2>Humidity: %.1f%%</h2>
-#     </div>
-
-#     <div class="controls">
-#         <button class="pump-in" onclick="controlPump('pump_in', 'on')">Pump In ON</button>
-#         <button class="pump-in" onclick="controlPump('pump_in', 'off')">Pump In OFF</button>
-#         <br>
-#         <button class="pump-out" onclick="controlPump('pump_out', 'on')">Pump Out ON</button>
-#         <button class="pump-out" onclick="controlPump('pump_out', 'off')">Pump Out OFF</button>
-#     </div>
-
-#     <div class="status">
-#         <p>Pump In Status: <span id="pump-in-state">%s</span></p>
-#         <p>Pump Out Status: <span id="pump-out-state">%s</span></p>
-#     </div>
-# </body>
-# </html>
-# """
-# async def handle_root(request):
-#     # Simulated sensor data (replace with real readings)
-#     temperature = 25.0
-#     humidity = 50.0
-    
-#     html = HTML_TEMPLATE % (
-#         temperature,
-#         humidity,
-#         "ON" if request.app['pump_in'] else "OFF",
-#         "ON" if request.app['pump_out'] else "OFF"
-#     )
-#     return web.Response(text=html, content_type='text/html')
-
-# async def handle_pump_in(request):
-#     action = request.match_info['action']
-#     request.app['pump_in'] = (action == 'on')
-#     return web.Response(text=f"Pump IN set to {action.upper()}")
-
-# async def handle_pump_out(request):
-#     action = request.match_info['action']
-#     request.app['pump_out'] = (action == 'on')
-#     return web.Response(text=f"Pump OUT set to {action.upper()}")
-
-# async def handle_status(request):
-#     return web.json_response({
-#         'pump_in': request.app['pump_in'],
-#         'pump_out': request.app['pump_out']
-#     })            
-
-# async def main():
-#     t1 = asyncio.create_task(BLE_task())
-#     t2 = asyncio.create_task(web_server())
-#     await asyncio.gather(t1, t2)
-
-# if __name__ == "__main__":
-#     asyncio.run(main())
