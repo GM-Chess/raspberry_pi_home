@@ -118,7 +118,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <title>Home Control webpage</title>
     <meta http-equiv="refresh" content="5">
     <style>
-        
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 40px; 
+            background-color: #f5f5f5;
+        }
         .container {
             display: flex;
             gap: 20px;
@@ -197,11 +201,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             color: white;
         }
 
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 40px; 
-            background-color: #f5f5f5;
-        }
+        
     </style>
     <script>
         function feedBirds() {
