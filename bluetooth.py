@@ -62,6 +62,8 @@ class SensorData:
     def __init__(self):
         self.temperature = 14.5
         self.humidity = 12.4
+        self.last_fed = "Never"
+        self.last_watered = "Never"
         self._lock = asyncio.Lock()
         
     async def update(self, temp, humidity, fed_time, water_time):
@@ -235,7 +237,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <body>
     <div class="container">
         <div class="image-panel">
-            <img src="bird1.jpg" alt="Bird System Overview" class="bird-image">
+            <img src="/static/bird1.jpg" alt="Bird System Overview" class="bird-image">
         </div>
         
         <div class="content-panel">
@@ -292,6 +294,7 @@ async def web_server(ble_client):
     app.router.add_get('/led/{state}', handle_led)  
     app.router.add_get('/status', handle_status)   
     app.router.add_get('/feed', handle_feed)
+    app.router.add_static('/static/', path='./', show_index=True)
     
     runner = web.AppRunner(app)
     await runner.setup()
@@ -401,8 +404,8 @@ async def handle_root(request):
     html = HTML_TEMPLATE % (
         temp,
         humidity,
-        fed_time,
-        water_time,
+        fed_time or "Never",
+        water_time or "Never",
         "ON" if request.app['pump_in'] else "OFF",
         "ON" if request.app['pump_out'] else "OFF",
         "ON" if request.app['led_state'] else "OFF"
