@@ -206,7 +206,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </head>
 <body>
     <h1>Home Control webpage</h1>
-    <img src="~/bird1.jpg" alt="Bird" />
+    <img src="/static/bird1.jpg" alt="Bird" />
     <div class="sensor-data">
         <h2>Temperature: %.1f&#176;C</h2>
         <h2>Humidity: %.1f%%</h2>
